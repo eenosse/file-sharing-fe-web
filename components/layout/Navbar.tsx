@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { HardDrive } from "lucide-react";
+import { _isAdmin, _isLoggedIn } from "@/lib/api/client";
 
 export default function Navbar() {
   // TODO: Integrate with Auth Context (Bảo Minh) to show User Avatar when logged in
-  const isLoggedIn = false; 
+  const isLoggedIn = _isLoggedIn();
+  const isAdmin = _isAdmin();
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -20,9 +22,21 @@ export default function Navbar() {
         </Link>
         
         {isLoggedIn ? (
-          <Link href="/dashboard" className="text-sm font-medium text-gray-900">
-            Dashboard
-          </Link>
+            // add thêm nút vào admin dashboard
+          <>
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-red-600 hover:text-red-700"
+              >
+                Admin Dashboard
+              </Link>
+            )}
+
+            <Link href="/dashboard" className="text-sm font-medium text-gray-900">
+              Dashboard
+            </Link>
+          </>
         ) : (
           <>
             <Link href="/auth/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
