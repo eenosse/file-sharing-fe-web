@@ -6,50 +6,49 @@ import { toast } from "sonner";
 import RegisterForm, {
   RegisterFormData,
 } from "@/components/auth/RegisterForm";
+import { authApi } from "@/lib/api/auth";
 
-export default class RegisterPage extends Component {
-  render() {
-    const [formData, setFormData] = useState<RegisterFormData>({
-      username: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      enableTotp: false,
-    });
+export default function RegisterPage() {
+  const [formData, setFormData] = useState<RegisterFormData>({
+    username: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-    const router = useRouter();
+  const router = useRouter();
 
-    const updateField = (field: keyof RegisterFormData, value: any) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-    };
+  const updateField = (field: keyof RegisterFormData, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      if (formData.password !== formData.confirmPassword) {
-        toast.error("Mật khẩu và xác nhận mật khẩu không khớp.");
-        return;
-      }
-      // TODO: Implement actual registration logic
-      if (
-        formData.email === "test@example.com" &&
-        formData.password === "testP455w0rd"
-      ) {
-        if (formData.enableTotp) {
-          router.push("/auth/totp-setup");
-        } else {
-          router.push("/auth/login");
-        }
-      } else {
-        toast.error("Đăng ký thất bại. Vui lòng thử lại.");
-      }
-    };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Mật khẩu và xác nhận mật khẩu không khớp.");
+      return;
+    }
+    try {
+        const res = await authApi.register({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+        });
 
-    return (
-      <RegisterForm
-        formData={formData}
-        updateField={updateField}
-        handleSubmit={handleSubmit}
-      />
-    );
-  }
+        toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+        router.push("/auth/login");
+    } catch (err: any) {
+        const msg =
+            err?.response?.data?.message || "Sai thông tin đăng nhập. Vui lòng thử lại.";
+        toast.error(msg);
+    }
+  };
+
+  return (
+    <RegisterForm
+      formData={formData}
+      updateField={updateField}
+      handleSubmit={handleSubmit}
+    />
+  );
 }

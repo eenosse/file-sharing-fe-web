@@ -1,9 +1,4 @@
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    role?: string;
-}
+import { User } from "@/lib/api/auth";
 
 const ACCESS_TOKEN_KEY = "fs_access_token";
 const USER_KEY = "fs_user";
@@ -57,8 +52,8 @@ export function setCurrentUser(user: User) {
 }
 
 export function _isLoggedIn(): boolean {
-    return true;
-    //   return !!getAccessToken();
+    // return true;
+    return !!getAccessToken();
 }
 
 export function _isAdmin(): boolean {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { HardDrive } from "lucide-react";
-import { _isAdmin, _isLoggedIn } from "@/lib/api/client";
+import { _isAdmin, _isLoggedIn } from "@/lib/api/helper";
 
 export default function Navbar() {
   // TODO: Integrate with Auth Context (Bảo Minh) to show User Avatar when logged in

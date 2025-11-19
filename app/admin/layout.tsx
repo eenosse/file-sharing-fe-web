@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 // import { useAuth } from "@/context/AuthContext";
 import NotAdminPage from "./templates/notadmin";
-import { _isAdmin, _isLoggedIn } from "@/lib/api/client";
+import { _isAdmin, _isLoggedIn } from "@/lib/api/helper";
 
 interface AdminLayoutProps {
   children: ReactNode;

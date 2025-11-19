@@ -1,4 +1,4 @@
-import api from "@/lib/api/client";
+import { uploadClient } from "@/lib/api/client";
 
 export interface UploadFileResponse {
   fileId: string;
@@ -35,7 +35,7 @@ function isAxiosErrorLike(error: unknown): error is AxiosErrorLike {
 
 export async function uploadFile(formData: FormData): Promise<UploadFileResponse> {
   try {
-    return await api.post<UploadFileResponse>("/files/upload", formData, {
+    return await uploadClient.post<UploadFileResponse>("/files/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
       withCredentials: true,
     });
