@@ -18,7 +18,7 @@ export type User = {
   email: string;
 };
 
-export type TOPTSetup = {
+export type TOTPSetup = {
   secret: string;
   qrCode: string;
 };
@@ -31,7 +31,7 @@ export type LoginSuccessResponse = {
 export type RegisterSuccessResponse = {
   message: string;
   userId: string;
-  toptSetup?: TOPTSetup;
+  totpSetup?: TOTPSetup;
 };
 
 export type TOTPRequiredResponse = {
@@ -43,7 +43,7 @@ export type LoginResponse = LoginSuccessResponse | TOTPRequiredResponse;
 
 export interface TotpSetupResponse {
   message: string;
-  toptSetup: TOPTSetup;
+  totpSetup: TOTPSetup;
 }
 
 export interface TotpVerifyRequest {
@@ -52,7 +52,12 @@ export interface TotpVerifyRequest {
 
 export interface TotpVerifyResponse {
   message: string;
-  toptEnabled: boolean;
+  totpEnabled: boolean;
+}
+
+export interface TotpLoginRequest {
+  email: string;
+  code: string;
 }
 
 export const authApi = {
@@ -63,4 +68,6 @@ export const authApi = {
   setupTotp: () => adminClient.post<TotpSetupResponse>("/auth/totp/setup", {}),
   verifyTotp: (payload: TotpVerifyRequest) =>
     adminClient.post<TotpVerifyResponse>("/auth/totp/verify", payload),
+  loginTotp: (payload: TotpLoginRequest) =>
+    authClient.post<LoginSuccessResponse>("/auth/login/totp", payload),
 };
