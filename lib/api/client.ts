@@ -69,6 +69,14 @@ const api = axios.create({
   timeout: 15000,
 });
 
+function isFormData(value: unknown): value is FormData {
+  if (typeof FormData === "undefined" || !value) {
+    return false;
+  }
+
+  return value instanceof FormData;
+}
+
 api.interceptors.request.use(
   (config) => {
     const token = getAccessToken();
@@ -88,7 +96,13 @@ api.interceptors.request.use(
     }
 
     // Đảm bảo Content-Type nếu là JSON
-    if (!config.headers?.["Content-Type"] && config.data && typeof config.data === "object") {
+    const shouldSetJsonContentType =
+      !config.headers?.["Content-Type"] &&
+      config.data &&
+      typeof config.data === "object" &&
+      !isFormData(config.data);
+
+    if (shouldSetJsonContentType) {
       config.headers = {
         ...config.headers,
         "Content-Type": "application/json",
