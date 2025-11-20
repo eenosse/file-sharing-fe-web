@@ -29,7 +29,7 @@ export default function NotAdminPage({ message = "Bạn không có quyền truy 
             </Link>
 
             <Link
-              href="/auth/login"
+              href="/login"
               className="inline-flex items-center justify-center px-5 py-2.5 rounded-md text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 shadow-sm hover:shadow-md transition"
             >
               Đăng nhập với quyền Admin

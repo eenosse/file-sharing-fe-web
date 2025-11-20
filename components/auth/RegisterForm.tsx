@@ -100,7 +100,7 @@ export default class RegisterForm extends Component<RegisterFormProps> {
           </form>
           <div className="text-center text-gray-500">
             Đã có tài khoản?{" "}
-            <Link href="/auth/login" className="font-medium text-blue-600 hover:underline">
+            <Link href="/login" className="font-medium text-blue-600 hover:underline">
               Đăng nhập
             </Link>
           </div>

@@ -28,7 +28,7 @@ export default function TotpSetupPage() {
 
       if (!token) {
         toast.error("You must be logged in to set up TOTP.");
-        router.push("/auth/login");
+        router.push("/login");
         return;
       }
 

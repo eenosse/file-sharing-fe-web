@@ -28,7 +28,7 @@ export default function LoginPage() {
 
                 if ("requireTOTP" in res) {
                     // Handle TOTP verification
-                    router.push(`/auth/login/totp?email=${encodeURIComponent(formData.email)}`);
+                    router.push(`/login/totp?email=${encodeURIComponent(formData.email)}`);
                 }
                 else if ("accessToken" in res) {
                     setAccessToken(res.accessToken);

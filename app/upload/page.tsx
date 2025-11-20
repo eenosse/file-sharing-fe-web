@@ -199,7 +199,7 @@ export default function UploadPage() {
 			if (err instanceof ApiError) {
 				if (err.status === 401) {
 					toast.error("Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại.");
-					router.push("/auth/login");
+					router.push("/login");
 					return;
 				}
 

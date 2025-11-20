@@ -22,7 +22,7 @@ function LoginTotpPageContent() {
   useEffect(() => {
     if (!email) {
       toast.error("No email provided for TOTP verification.");
-      router.push("/auth/login");
+      router.push("/login");
     }
   }, [email, router]);
 

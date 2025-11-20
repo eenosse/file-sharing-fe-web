@@ -12,7 +12,7 @@ interface AuthTOTPLayoutProps {
 export default function AdminLayout({ children }: AuthTOTPLayoutProps) {
     const router = useRouter();
     if (!_isLoggedIn()) {
-        router.push("/auth/login");
+        router.push("/login");
     }
     return <>{children}</>;
 }

@@ -31,7 +31,7 @@ export default class Home extends Component {
               
               {/* CTA: Quản lý file (Dành cho Dashboard - Minh Quan phụ trách) */}
               <Link 
-                href="/auth/login" 
+                href="/login" 
                 className="inline-flex items-center justify-center px-8 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 md:text-lg transition-all"
               >
                 Đăng nhập quản lý

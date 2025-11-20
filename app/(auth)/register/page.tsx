@@ -36,7 +36,7 @@ export default function RegisterPage() {
         });
 
         toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-        router.push("/auth/login");
+        router.push("/login");
     } catch (err: any) {
         const msg =
             err?.response?.data?.message || "Sai thông tin đăng nhập. Vui lòng thử lại.";

@@ -68,7 +68,7 @@ export default class LoginForm extends Component<LoginFormProps> {
           </form>
           <div className="text-center text-gray-500">
             Chưa có tài khoản?{" "}
-            <Link href="/auth/register" className="font-medium text-blue-600 hover:underline">
+            <Link href="/register" className="font-medium text-blue-600 hover:underline">
               Đăng ký ngay
             </Link>
           </div>

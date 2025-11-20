@@ -49,11 +49,11 @@ export default function Navbar() {
         ) : (
           // Default view (rendered on Server and initial Client load)
           <>
-            <Link href="/auth/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900">
               Đăng nhập
             </Link>
             <Link 
-              href="/auth/register" 
+              href="/register" 
               className="text-sm font-medium bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
             >
               Đăng ký
