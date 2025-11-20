@@ -32,7 +32,7 @@ export type File = {
   totpEnabled: boolean;
   owner: User;
   createdAt: string;
-}
+};
 
 // =====================
 // auth
@@ -94,6 +94,20 @@ export interface TotpLoginRequest {
 // =====================
 // file upload
 // =====================
+export interface UploadedFileSummary {
+  id: string;
+  fileName: string;
+  shareLink: string;
+  shareToken?: string;
+  isPublic?: boolean;
+  hasPassword?: boolean;
+  availableFrom?: string;
+  availableTo?: string;
+  sharedWith?: string[];
+  expiresAt?: string;
+  totpEnabled?: boolean;
+}
+
 export interface FileUploadRequest {
   file: File | Blob;
   isPublic?: boolean;
@@ -105,13 +119,10 @@ export interface FileUploadRequest {
 }
 
 export interface FileUploadResponse {
-  success: boolean;
-  file: File;
-  totpSetup?: {
-    secret: string;
-    qrCode: string;
-  };
-  message: string;
+  success?: boolean;
+  file: UploadedFileSummary;
+  totpSetup?: TOTPSetup;
+  message?: string;
 }
 
 export interface FileInfoResponse {

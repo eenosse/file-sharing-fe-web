@@ -14,7 +14,8 @@ import {
 	X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ApiError, uploadFile, UploadFileResponse } from "@/services/fileService";
+import { ApiError, uploadFile } from "@/lib/api/file";
+import type { FileUploadResponse } from "@/lib/components/schemas";
 
 
 const MAX_FILE_SIZE_MB = 50;
@@ -53,7 +54,7 @@ export default function UploadPage() {
 	const [sharedWith, setSharedWith] = useState<string[]>([]);
 	const [enableTOTP, setEnableTOTP] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [uploadResult, setUploadResult] = useState<UploadFileResponse | null>(null);
+	const [uploadResult, setUploadResult] = useState<FileUploadResponse | null>(null);
 
 	const acceptAttribute = useMemo(
 		() => ACCEPTED_EXTENSIONS.map((ext) => `.${ext}`).join(","),
@@ -178,7 +179,7 @@ export default function UploadPage() {
 		}
 
 		if (sharedWith.length) {
-			formData.append("sharedWith", JSON.stringify(sharedWith));
+			sharedWith.forEach((email) => formData.append("sharedWith", email));
 		}
 
 		formData.append("enableTOTP", String(enableTOTP));
@@ -214,12 +215,13 @@ export default function UploadPage() {
 	};
 
 	const handleCopyShareLink = async () => {
-		if (!uploadResult?.shareLink) {
+		const shareLink = uploadResult?.file?.shareLink;
+		if (!shareLink) {
 			return;
 		}
 
 		try {
-			await navigator.clipboard.writeText(uploadResult.shareLink);
+			await navigator.clipboard.writeText(shareLink);
 			toast.success("Đã sao chép link chia sẻ.");
 		} catch (error) {
 			console.error("Clipboard error", error);
@@ -447,23 +449,36 @@ export default function UploadPage() {
 				</form>
 
 				{uploadResult && (
-					<div className="mt-10 rounded-2xl border border-green-200 bg-green-50 p-6">
+					<div className="mt-10 rounded-2xl border border-green-200 bg-green-50 p-6 space-y-6">
 						<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 							<div className="flex items-start gap-3">
 								<CheckCircle2 className="mt-1 h-5 w-5 text-green-600" />
 								<div>
 									<p className="text-sm font-semibold text-green-700">Upload thành công!</p>
-									<p className="mt-1 text-sm text-green-600">
-										Chia sẻ link bên dưới cho người nhận. Lưu ý bảo mật mật khẩu/TOTP nếu bạn đã bật.
+									{uploadResult.message && (
+										<p className="mt-1 text-sm text-green-600">{uploadResult.message}</p>
+									)}
+									<p className="mt-2 text-sm text-green-600">
+										Chia sẻ thông tin bên dưới cho người nhận và lưu ý bảo mật mật khẩu/TOTP nếu bạn đã bật.
 									</p>
-									{uploadResult.shareLink && (
+									{uploadResult.file?.fileName && (
+										<p className="mt-2 text-xs text-green-700">
+											File: <span className="font-medium">{uploadResult.file.fileName}</span>
+										</p>
+									)}
+									{uploadResult.file?.shareToken && (
+										<p className="mt-1 text-xs text-green-700">
+											Share token: <span className="font-mono">{uploadResult.file.shareToken}</span>
+										</p>
+									)}
+									{uploadResult.file?.shareLink && (
 										<div className="mt-3 rounded-lg bg-white px-4 py-3 text-sm text-gray-700 border border-green-100 break-all">
-											{uploadResult.shareLink}
+											{uploadResult.file.shareLink}
 										</div>
 									)}
 								</div>
 							</div>
-							{uploadResult.shareLink && (
+							{uploadResult.file?.shareLink && (
 								<button
 									type="button"
 									onClick={handleCopyShareLink}
@@ -474,6 +489,28 @@ export default function UploadPage() {
 								</button>
 							)}
 						</div>
+						{uploadResult.totpSetup && (
+							<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+								<div>
+									<p className="text-sm font-semibold text-green-700">TOTP được bật cho file này</p>
+									<p className="mt-1 text-xs text-green-600">
+										Quét QR hoặc nhập secret bên dưới vào ứng dụng Google Authenticator/Authy, sau đó cung cấp mã TOTP cho người cần tải.
+									</p>
+									<div className="mt-3 rounded-lg bg-white px-4 py-3 text-xs text-gray-700 border border-green-100 break-all font-mono">
+										Secret: {uploadResult.totpSetup.secret}
+									</div>
+								</div>
+								{uploadResult.totpSetup.qrCode && (
+									<div className="flex justify-center">
+										<img
+											src={uploadResult.totpSetup.qrCode}
+											alt="QR code TOTP"
+											className="h-32 w-32 rounded-xl border border-green-200 bg-white p-2 shadow-sm"
+										/>
+									</div>
+								)}
+							</div>
+						)}
 					</div>
 				)}
 			</div>
