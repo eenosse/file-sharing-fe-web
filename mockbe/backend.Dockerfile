@@ -19,6 +19,7 @@ EXPOSE 8080
 # Define environment variable
 ENV FLASK_APP=server.py
 ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=8080
 
 # Run server.py when the container launches
 CMD ["flask", "run"]
