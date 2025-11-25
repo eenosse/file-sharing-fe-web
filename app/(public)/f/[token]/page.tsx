@@ -1,23 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-
+import { useParams } from "next/navigation";
 // Dữ liệu giả lập (hard-code)
 const mockMeta = {
     id: "abc123xyz",
     fileName: "File Sharing Backend API Documentation.pdf",
     size: 194_560,
     mimeType: "application/pdf",
-    expiresAt: "2025-11-22T23:59:59Z", // Ngày hết hạn
-    availableFrom: "2025-11-20T12:00:00Z",   // TEST trạng thái Pending
+    expiresAt: "2025-12-31T23:59:59Z",      // ← Đặt "2025-11-19T00:00:00Z" để test expired
+    availableFrom: null,                    // ← Đặt "2025-11-22T12:00:00Z" để test pending
     passwordProtected: true,
     requiresTotp: false,
-    uploadedBy: "me.dev"             
+    uploadedBy: "me.dev"
 };
 
-export default function Page({ params }: { params: { token: string } }) {
-    const { token } = params;
-
+export default function Page() {
+    const params = useParams();
+    const { token } = params as { token: string };
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export default function Page({ params }: { params: { token: string } }) {
 
     // Copy link
     const copyLink = () => {
-        const link = `${window.location.origin}/s/${token}`;
+        const link = `${window.location.origin}/f/${token}`;
         navigator.clipboard.writeText(link);
         alert("Đã copy link chia sẻ!");
     };
@@ -68,15 +68,18 @@ export default function Page({ params }: { params: { token: string } }) {
 
         }, 1000);
 
-            return () => clearInterval(timer);
-        }, [isPending]);
+        return () => clearInterval(timer);
+    }, [isPending]);
 
 
     // Download mô phỏng
+    const hardPassword = "123456";
+
     const download = async () => {
         if (!isActive) return;
 
-        if (mockMeta.passwordProtected && password !== "123456") {
+        if (mockMeta.passwordProtected && password !== hardPassword) {
+            setDownloaded(false);
             setError("Mật khẩu không đúng.");
             return;
         }
@@ -139,7 +142,7 @@ Thời gian: ${new Date().toLocaleString()}
                 {/* SUCCESS */}
                 {downloaded && (
                     <div className="mb-6 p-4 bg-green-100 border border-green-300 text-green-800 rounded-lg text-center font-medium">
-                        Đang tải file...
+                        ✅ Đã bắt đầu tải file thành công!
                     </div>
                 )}
 
