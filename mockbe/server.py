@@ -411,15 +411,45 @@ def get_user_files():
     token, user = get_current_user()
     if not user:
         return jsonify({"message": "Unauthorized"}), 401
-    
+
     user_email = user["email"]
 
+    # Get query params from request
+    status_filter = request.args.get("status", "all")
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 20))
+    sort_by = request.args.get("sortBy", "createdAt")
+    order = request.args.get("order", "desc")
+
     # In a real app, this would be a database query. Here, we filter the in-memory dict.
-    user_files = [
-        file_meta
+    user_files_with_status = [
+        (file_meta, get_file_status(file_meta))
         for file_meta in files.values()
         if file_meta.get("ownerEmail") == user_email
     ]
+
+    # Filter by status
+    if status_filter != "all":
+        user_files_with_status = [
+            (file, status) for file, status in user_files_with_status if status == status_filter
+        ]
+
+    # Sort files
+    reverse_order = order == "desc"
+    if sort_by == "fileName":
+        user_files_with_status.sort(
+            key=lambda item: item[0].get("filename", "").lower(), reverse=reverse_order
+        )
+    else:  # Default to sorting by createdAt
+        user_files_with_status.sort(
+            key=lambda item: item[0]["createdAt"], reverse=reverse_order
+        )
+
+    # Paginate files
+    total_files = len(user_files_with_status)
+    start_index = (page - 1) * limit
+    end_index = start_index + limit
+    paginated_files_with_status = user_files_with_status[start_index:end_index]
 
     # Process files and calculate summary
     serialized_files = []
@@ -427,13 +457,20 @@ def get_user_files():
         "activeFiles": 0,
         "pendingFiles": 0,
         "expiredFiles": 0,
-        "deletedFiles": 0,  # Not implemented in this mock
+        "deletedFiles": 0,
     }
 
-    for file_meta in user_files:
-        status = get_file_status(file_meta)
+    # Calculate summary based on all user files (pre-pagination)
+    for _, status in user_files_with_status:
+        if status == "active":
+            summary["activeFiles"] += 1
+        elif status == "pending":
+            summary["pendingFiles"] += 1
+        elif status == "expired":
+            summary["expiredFiles"] += 1
 
-        # The user dashboard only needs a summary of the file
+    # Serialize only the paginated files
+    for file_meta, status in paginated_files_with_status:
         serialized_files.append(
             {
                 "id": file_meta["id"],
@@ -444,20 +481,13 @@ def get_user_files():
             }
         )
 
-        if status == "active":
-            summary["activeFiles"] += 1
-        elif status == "pending":
-            summary["pendingFiles"] += 1
-        elif status == "expired":
-            summary["expiredFiles"] += 1
-
     # Mock pagination
-    total_files = len(serialized_files)
+    total_pages = (total_files + limit - 1) // limit
     pagination = {
-        "currentPage": 1,
-        "totalPages": 1,
+        "currentPage": page,
+        "totalPages": total_pages,
         "totalFiles": total_files,
-        "limit": max(20, total_files),  # Mock limit
+        "limit": limit,
     }
 
     return jsonify(
