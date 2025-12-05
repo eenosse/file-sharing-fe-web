@@ -198,3 +198,17 @@ export interface CleanupResponse {
 //   message: string;
 //   code: string;
 // }
+
+export interface FileInfo {
+    id: string;
+    fileName: string;
+    fileSize?: number;
+    mimeType?: string;
+    shareToken: string;
+    status: "active" | "pending" | "expired";
+    isPublic: boolean;
+    hasPassword: boolean;
+    availableFrom?: string;
+    availableTo?: string;
+    createdAt?: string;
+}

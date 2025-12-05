@@ -110,7 +110,7 @@ def get_file_status(file_meta: dict) -> str:
     """
     Determines the status of a file based on its availableFrom and availableTo dates.
     """
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     available_from_str = file_meta.get("availableFrom")
     available_to_str = file_meta.get("availableTo")
 
@@ -662,13 +662,15 @@ def upload_file():
         "ownerEmail": owner_email,
         "isPublic": bool(is_public),
         "passwordProtected": bool(password),
-        "availableFrom": available_from.isoformat() + "Z" if available_from else None,
-        "availableTo": available_to.isoformat() + "Z" if available_to else None,
+        "availableFrom": available_from.isoformat() if available_from else None,
+        "availableTo": available_to.isoformat() if available_to else None,
         "sharedWith": shared_with,
         "shareLink": share_link,
-        "createdAt": datetime.utcnow().isoformat() + "Z",
+        "createdAt": datetime.now(timezone.utc).isoformat(),
         "totpEnabled": bool(enable_totp),
     }
+
+    print(file_meta)
 
     # store metadata (not storing file bytes permanently in this mock)
     files[file_id] = file_meta
