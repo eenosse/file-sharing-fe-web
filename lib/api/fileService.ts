@@ -21,7 +21,8 @@ export async function getFileByToken(token: string): Promise<FileInfo> {
                     headers: { Authorization: `Bearer ${authToken}` }
                 };
                 const infoRes = await axios.get(`${apiBase}/files/info/${publicFile.id}`, config);
-                return infoRes.data.file;
+                return publicFile; // file info does not have the same schema as publicfile
+                // return infoRes.data.file;
             } catch (err) {
                 // Ignore errors fetching detailed info (e.g. not owner), fall back to public info
                 return publicFile;
