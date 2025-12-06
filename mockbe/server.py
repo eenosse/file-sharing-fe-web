@@ -777,6 +777,10 @@ def get_file_info_public(share_token: str):
         "status": status,
         "isPublic": file_meta["isPublic"],
         "hasPassword": file_meta["passwordProtected"],
+        "fileSize": file_meta["size"],
+        "mimeType": file_meta.get("mimeType"),
+        "availableFrom": file_meta.get("availableFrom"),
+        "availableTo": file_meta.get("availableTo"),
     }
     
     return jsonify({"file": response_file}), 200

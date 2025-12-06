@@ -9,16 +9,25 @@ const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 export async function getFileByToken(token: string): Promise<FileInfo> {
     try {
         const tokenRes = await axios.get(`${apiBase}/files/${token}`);
-        const fileId = tokenRes.data.file.id;
+        const publicFile = tokenRes.data.file;
 
-        const config: any = { headers: {} };
-        const authToken = localStorage.getItem("token");
+        // Try to get detailed info if user is logged in
+        const authToken = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+        
         if (authToken) {
-            config.headers.Authorization = `Bearer ${authToken}`;
+            try {
+                const config = { 
+                    headers: { Authorization: `Bearer ${authToken}` } 
+                };
+                const infoRes = await axios.get(`${apiBase}/files/info/${publicFile.id}`, config);
+                return infoRes.data.file;
+            } catch (err) {
+                // Ignore errors fetching detailed info (e.g. not owner), fall back to public info
+                return publicFile;
+            }
         }
 
-        const infoRes = await axios.get(`${apiBase}/files/info/${fileId}`, config);
-        return infoRes.data.file;
+        return publicFile;
     } catch (error: any) {
         const status = error.response?.status;
         if (status === 404) {
@@ -40,17 +49,17 @@ export async function downloadFile(
     password?: string
 ): Promise<void> {
     try {
-        let downloadUrl = `${apiBase}/files/${token}/download`;
-        if (password) {
-            downloadUrl += `?password=${encodeURIComponent(password)}`;
-        }
-
+        const downloadUrl = `${apiBase}/files/${token}/download`;
         const config: any = {
             responseType: "blob",
             headers: {},
         };
 
-        const authToken = localStorage.getItem("token");
+        if (password) {
+            config.headers["X-File-Password"] = password;
+        }
+
+        const authToken = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
         if (authToken) {
             config.headers.Authorization = `Bearer ${authToken}`;
         }
@@ -65,13 +74,24 @@ export async function downloadFile(
         a.click();
         URL.revokeObjectURL(url);
     } catch (error: any) {
-        const status = error.response?.status;
-        const message = error.response?.data?.message;
+        let status = error.response?.status;
+        let message = error.response?.data?.message;
+
+        // Handle Blob error response
+        if (error.response?.data instanceof Blob) {
+            try {
+                const text = await error.response.data.text();
+                const json = JSON.parse(text);
+                message = json.message || json.error;
+            } catch (e) {
+                // Failed to parse blob as JSON, ignore
+            }
+        }
 
         if (status === 401) {
             throw new Error("AUTH_REQUIRED");
         } else if (status === 403) {
-            if (message?.includes("password")) {
+            if (message?.includes("password") || message?.includes("Incorrect")) {
                 throw new Error("Mật khẩu không chính xác");
             } else if (message?.includes("not allowed") || message?.includes("shared list")) {
                 throw new Error("Bạn không có quyền tải file này. Email của bạn không nằm trong danh sách chia sẻ.");
@@ -98,17 +118,17 @@ export async function loadFilePreview(
     password?: string
 ): Promise<string> {
     try {
-        let previewUrl = `${apiBase}/files/${token}/download`;
-        if (password) {
-            previewUrl += `?password=${encodeURIComponent(password)}`;
-        }
-
+        const previewUrl = `${apiBase}/files/${token}/download`;
         const config: any = {
             responseType: "blob",
             headers: {},
         };
 
-        const authToken = localStorage.getItem("token");
+        if (password) {
+            config.headers["X-File-Password"] = password;
+        }
+
+        const authToken = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
         if (authToken) {
             config.headers.Authorization = `Bearer ${authToken}`;
         }
