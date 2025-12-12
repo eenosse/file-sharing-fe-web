@@ -38,7 +38,7 @@ export default function LoginPage() {
                     router.push("/dashboard");
                 }
                 else {
-                    toast.error("Invalid credentials. Please try again.");
+                    toast.error("Sai thông tin đăng nhập. Vui lòng thử lại.");
                 }
             } catch (err: any) {
                 const msg = getErrorMessage(err, "Sai thông tin đăng nhập. Vui lòng thử lại.");

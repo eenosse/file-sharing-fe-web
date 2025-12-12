@@ -9,8 +9,6 @@ services:
         NEXT_PUBLIC_API_URL: /api
     # expose:
     #   - "3000"
-    depends_on:
-      - backend
     networks:
       - app-network
 
@@ -33,10 +31,11 @@ services:
       - "${FRONTEND_PORT}:80"
     depends_on:
       - frontend
-      - backend
+      # - backend
     networks:
       - app-network
 
 networks:
   app-network:
+    name: common-app-network
     driver: bridge
