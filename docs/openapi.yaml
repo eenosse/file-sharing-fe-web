@@ -6,7 +6,7 @@ info:
     - Upload file và tạo link chia sẻ
     - Thiết lập quyền truy cập (public/password-protected/private)
     - Thời gian hiệu lực linh hoạt (from/to)
-    - Bảo vệ bằng mật khẩu hoặc TOTP
+    - Bảo vệ bằng mật khẩu
     - Chia sẻ với danh sách người dùng cụ thể
     - Tự động xóa file hết hạn
   version: 1.0.0
@@ -20,8 +20,6 @@ info:
 servers:
   - url: http://localhost:8080
     description: Development server
-  - url: https://api.filesharing.com
-    description: Production server
 
 tags:
   - name: Authentication
@@ -42,11 +40,11 @@ paths:
       summary: Đăng ký tài khoản mới
       description: |
         Tạo tài khoản người dùng mới (không bắt buộc để upload file).
-        
+
         **Lưu ý:**
         - User tự đăng ký sẽ luôn có `role = user` (mặc định)
         - Admin account được tạo qua script/seed data hoặc endpoint riêng (chỉ admin gọi được)
-        
+
         **Lưu ý về TOTP/2FA:**
         - Không thể bật TOTP ngay khi đăng ký
         - Sau khi đăng ký, user cần đăng nhập để lấy Bearer token
@@ -57,7 +55,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RegisterRequest'
+              $ref: "#/components/schemas/RegisterRequest"
             examples:
               basic:
                 summary: Đăng ký tài khoản cơ bản
@@ -66,24 +64,24 @@ paths:
                   email: nam@example.com
                   password: "passwordtest"
       responses:
-        '200':
+        "200":
           description: Đăng ký thành công
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RegisterResponse'
+                $ref: "#/components/schemas/RegisterResponse"
               examples:
                 success:
                   summary: Đăng ký thành công
                   value:
                     message: User registered successfully
                     userId: 550e8400-e29b-41d4-a716-446655440000
-        '400':
+        "400":
           description: Thiếu hoặc sai định dạng trường bắt buộc
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingField:
                   summary: Thiếu email
@@ -95,12 +93,12 @@ paths:
                   value:
                     error: Validation error
                     message: Email format is invalid
-        '409':
+        "409":
           description: Email hoặc username đã tồn tại
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 emailExists:
                   summary: Email đã được sử dụng
@@ -120,7 +118,7 @@ paths:
       summary: Đăng nhập
       description: |
         Đăng nhập để lấy JWT token.
-        
+
         **Luồng xử lý:**
         1. Nếu user chưa bật TOTP: trả về accessToken ngay
         2. Nếu user đã bật TOTP (totpEnabled=true): trả về `requireTOTP: true`, client cần gọi `/auth/login/totp` để hoàn tất đăng nhập
@@ -130,16 +128,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LoginRequest'
+              $ref: "#/components/schemas/LoginRequest"
       responses:
-        '200':
+        "200":
           description: Đăng nhập thành công hoặc yêu cầu TOTP
           content:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/LoginResponse'
-                  - $ref: '#/components/schemas/TOTPRequiredResponse'
+                  - $ref: "#/components/schemas/LoginResponse"
+                  - $ref: "#/components/schemas/TOTPRequiredResponse"
               examples:
                 success:
                   summary: Đăng nhập thành công (không có TOTP)
@@ -156,12 +154,12 @@ paths:
                     message: TOTP verification required
                     cid: 8d4f3bb1-2f52-4a76-b951-7c21ef991abc
 
-        '401':
+        "401":
           description: Sai email hoặc password
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 invalidCredential:
                   summary: Sai email hoặc password
@@ -177,7 +175,7 @@ paths:
       description: |
         Gọi endpoint này sau khi `/auth/login` trả về `requireTOTP: true`.
         Xác thực mã TOTP 6 chữ số để lấy access token.
-        
+
         **Không cần Bearer token** vì đây là bước hoàn tất đăng nhập - user chưa có token.
         Backend xác minh mã TOTP đúng thì mới cấp access token lần đầu.
       security: []
@@ -186,7 +184,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TOTPVerifyRequest'
+              $ref: "#/components/schemas/TOTPVerifyRequest"
             examples:
               login:
                 summary: Xác thực TOTP khi đăng nhập
@@ -194,18 +192,18 @@ paths:
                   cid: 8d4f3bb1-2f52-4a76-b951-7c21ef991abc
                   code: "123456"
       responses:
-        '200':
+        "200":
           description: Xác thực thành công
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LoginResponse'
-        '401':
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
           description: Mã TOTP không hợp lệ hoặc phiên đăng nhập đã hết hạn
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 invalidTotp:
                   summary: Sai mã TOTP
@@ -225,9 +223,9 @@ paths:
       summary: Thiết lập TOTP
       description: |
         Bật hoặc reset TOTP (2FA) cho user.
-        
+
         **Yêu cầu:** User phải đăng nhập trước (cần Bearer token).
-        
+
         **Luồng sử dụng:**
         1. User đăng nhập bình thường để lấy Bearer token
         2. Gọi endpoint này để nhận TOTP secret và QR code
@@ -236,12 +234,12 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: TOTP secret được tạo
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TOTPSetupResponse'
+                $ref: "#/components/schemas/TOTPSetupResponse"
               examples:
                 success:
                   summary: TOTP setup thành công
@@ -250,12 +248,12 @@ paths:
                     totpSetup:
                       secret: NB2W45DFOIZA====
                       qrCode: data:image/png;base64,iVBORw0KGgo...
-        '401':
+        "401":
           description: Thiếu hoặc sai Bearer token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   summary: Thiếu Authorization header
@@ -275,9 +273,9 @@ paths:
       summary: Xác minh mã TOTP để kích hoạt 2FA
       description: |
         Xác minh mã TOTP 6 chữ số để kích hoạt 2FA cho tài khoản.
-        
+
         **Yêu cầu:** User phải đăng nhập và đã gọi `/auth/totp/setup` trước đó (cần Bearer token).
-        
+
         **Sau khi verify thành công:**
         - Tài khoản được đánh dấu `totpEnabled = true`
         - Các lần đăng nhập sau sẽ yêu cầu mã TOTP
@@ -298,7 +296,7 @@ paths:
               required:
                 - code
       responses:
-        '200':
+        "200":
           description: TOTP được xác minh thành công, 2FA đã được kích hoạt
           content:
             application/json:
@@ -311,24 +309,24 @@ paths:
                   totpEnabled:
                     type: boolean
                     example: true
-        '400':
+        "400":
           description: Mã TOTP không hợp lệ hoặc đã hết hạn
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 invalidCode:
                   summary: Mã không đúng
                   value:
                     error: Invalid TOTP code
                     message: The provided code is incorrect or expired
-        '401':
+        "401":
           description: Thiếu hoặc sai Bearer token
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   summary: Thiếu Authorization header
@@ -348,7 +346,7 @@ paths:
       summary: Đăng xuất
       description: Đăng xuất (client tự xóa token)
       responses:
-        '200':
+        "200":
           description: Đăng xuất thành công
           content:
             application/json:
@@ -369,12 +367,12 @@ paths:
       security:
         - BearerAuth: []
       responses:
-        '200':
+        "200":
           description: Thông tin user
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                $ref: "#/components/schemas/UserProfileResponse"
               examples:
                 success:
                   summary: Thông tin user
@@ -385,8 +383,8 @@ paths:
                       email: nam@example.com
                       role: user
                       totpEnabled: true
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
 
   /files/upload:
     post:
@@ -396,7 +394,7 @@ paths:
       description: |
         Upload file mới và tạo share link.
         Authorization header là optional - nếu không có thì anonymous upload (chỉ upload được file public).
-        
+
         **Lưu ý:**
         - Các cấu hình private (`isPublic = false`, dùng whitelist `sharedWith`, password nâng cao) yêu cầu Bearer token để hệ thống gắn owner.
         - Anonymous upload luôn `isPublic = true` và không thể chỉnh sửa/xóa file sau khi upload.
@@ -409,14 +407,14 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/FileUploadRequest'
+              $ref: "#/components/schemas/FileUploadRequest"
       responses:
-        '201':
+        "201":
           description: Upload thành công
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FileUploadResponse'
+                $ref: "#/components/schemas/FileUploadResponse"
               examples:
                 success:
                   summary: Upload thành công
@@ -427,15 +425,13 @@ paths:
                       id: 550e8400-e29b-41d4-a716-446655440000
                       fileName: report.pdf
                       shareToken: a1b2c3d4e5f6g7h8
-                    totpSetup:
-                      secret: NB2W45DFOIZA====
-                      qrCode: data:image/png;base64,iVBORw0KGgo...
-        '400':
+                      isPublic: false
+        "400":
           description: Thiếu file hoặc vi phạm validation (password quá ngắn, cấu hình thời gian không hợp lệ, ... )
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingFile:
                   summary: Không gửi file trong form-data
@@ -452,12 +448,12 @@ paths:
                   value:
                     error: Validation error
                     message: availableFrom must be before availableTo and within allowed policy window
-        '401':
+        "401":
           description: Thiếu hoặc sai Bearer token (khi upload với quyền riêng tư)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   summary: Thiếu Authorization header
@@ -469,12 +465,12 @@ paths:
                   value:
                     error: Unauthorized
                     message: Private uploads (isPublic=false/sharedWith) require authentication
-        '413':
+        "413":
           description: File quá lớn
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 fileTooLarge:
                   summary: File vượt quá giới hạn
@@ -489,7 +485,7 @@ paths:
       summary: Lấy danh sách file của user hiện tại
       description: |
         Trả về danh sách file do user hiện tại upload (đã đăng nhập).
-        
+
         **Bao gồm:**
         - Danh sách file kèm metadata (status, thời gian hiệu lực, bảo mật, ...)
         - Pagination (`page`, `limit`) và tổng số file
@@ -534,12 +530,12 @@ paths:
             enum: [asc, desc]
             default: desc
       responses:
-        '200':
+        "200":
           description: Danh sách file của user hiện tại
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserFilesResponse'
+                $ref: "#/components/schemas/UserFilesResponse"
               examples:
                 success:
                   summary: Danh sách file + pagination
@@ -547,10 +543,12 @@ paths:
                     files:
                       - id: 550e8400-e29b-41d4-a716-446655440001
                         fileName: document.pdf
+                        shareToken: a1b2c3d4e5f6g7h8
                         status: active
                         createdAt: "2025-11-19T10:00:00Z"
                       - id: 550e8400-e29b-41d4-a716-446655440002
                         fileName: old-file.pdf
+                        shareToken: b2c3d4e5f6g7h8i9
                         status: expired
                         createdAt: "2025-11-10T10:00:00Z"
                     pagination:
@@ -563,8 +561,73 @@ paths:
                       pendingFiles: 5
                       expiredFiles: 9
                       deletedFiles: 0
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /files/available:
+    get:
+      tags:
+        - Files
+      summary: Xem các file có thể tải về
+      description: |
+        Trả về danh sách các file công khai hoặc, chia sẻ tới người dùng,
+        hoặc thuộc sở hữu của người dùng, với điều kiện là file còn mở và chưa hết hạn.
+
+        API không yêu cầu authentication.
+        Khi không có Bearer Token, coi như đang truy cập ẩn danh. Chỉ trả về những
+        file công khai và còn hạn.
+
+      security:
+        - BearerAuth: []
+        - {}
+      parameters:
+        - name: page
+          in: query
+          required: false
+          description: Số trang
+          schema:
+            type: number
+
+        - name: limit
+          in: query
+          description: Giới hạn số file hiển thị mỗi trang
+          schema:
+            type: number
+
+      responses:
+        "200":
+          description: Danh sách file
+          content:
+            application/json:
+              examples:
+                success:
+                  value:
+                    files:
+                      - fileid: 1ce7dbd6-9569-433a-bbc6-e58292e16ff0
+                        filename: Chụp màn hình từ 2025-12-11 17-41-38.png
+                        owner: kdm@gmail.com
+                        haspassword: false
+                        sharetoken: oCZTb3WCs6GHn2FZ
+                      - fileid: 47b60c4a-07a4-466b-b3c1-5c8e47e269b0
+                        filename: test_file.txt
+                        owner: null
+                        haspassword: false
+                        sharetoken: MBkgYwBvYVWRnEmF
+                      - fileid: c0e7413e-d00e-4aa8-9269-8c7d31f1feec
+                        filename: test_file.txt
+                        owner: null
+                        haspassword: true
+                        sharetoken: 7tW8XWkJMd3Dvmim
+                      - fileid: 1c81e539-6f71-4e71-9c1e-5c41613af495
+                        filename: test_file.txt
+                        owner: null
+                        haspassword: false
+                        sharetoken: n2dKe99plZ8V55Eh
+                    pagination:
+                      currentPage: 2
+                      limit: 10
+                      totalFiles: 14
+                      totalPages: 2
 
   /files/info/{id}:
     get:
@@ -573,12 +636,12 @@ paths:
       summary: Lấy thông tin file theo ID
       description: |
         Lấy thông tin chi tiết của file theo UUID (chỉ owner hoặc admin).
-        
+
         **Khác với `/files/{shareToken}`:**
         - Endpoint này dùng UUID (file ID), yêu cầu authentication
         - Chỉ owner hoặc admin mới truy cập được
         - Trả về đầy đủ metadata bao gồm cả thông tin nhạy cảm (không public)
-        
+
         **Use case:** Owner xem thông tin file của mình trong dashboard
       security:
         - BearerAuth: []
@@ -592,12 +655,12 @@ paths:
             format: uuid
             example: 550e8400-e29b-41d4-a716-446655440000
       responses:
-        '200':
+        "200":
           description: Thông tin file chi tiết
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FileInfoResponse'
+                $ref: "#/components/schemas/FileInfoResponse"
               examples:
                 success:
                   summary: File metadata đầy đủ
@@ -611,7 +674,6 @@ paths:
                       shareLink: https://example.com/f/a1b2c3d4e5f6g7h8
                       isPublic: false
                       hasPassword: true
-                      totpEnabled: true
                       availableFrom: "2025-11-10T00:00:00Z"
                       availableTo: "2025-11-17T00:00:00Z"
                       status: active
@@ -623,40 +685,40 @@ paths:
                         email: nam@example.com
                         role: user
                       createdAt: "2025-11-10T10:00:00Z"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
           description: Không phải owner hoặc admin
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notOwner:
                   summary: User không có quyền truy cập file này
                   value:
                     error: Forbidden
                     message: You don't have permission to access this file
-        '404':
+        "404":
           description: Không tìm thấy file với ID
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notFound:
                   summary: File không tồn tại
                   value:
                     error: Not found
                     message: File not found
-    
+
     delete:
       tags:
         - Files
       summary: Xóa file
       description: |
         Xóa file theo UUID (chỉ owner hoặc admin).
-        
+
         **Quyền truy cập:**
         - Chỉ owner của file hoặc admin mới có thể xóa
         - Anonymous uploads (file không có owner) **KHÔNG THỂ** xóa file sau khi upload
@@ -672,7 +734,7 @@ paths:
             format: uuid
             example: 550e8400-e29b-41d4-a716-446655440000
       responses:
-        '200':
+        "200":
           description: Xóa thành công
           content:
             application/json:
@@ -692,14 +754,14 @@ paths:
                   value:
                     message: File deleted successfully
                     fileId: 550e8400-e29b-41d4-a716-446655440000
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
           description: Không phải owner hoặc anonymous upload
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notOwner:
                   summary: Không phải owner
@@ -711,12 +773,12 @@ paths:
                   value:
                     error: Forbidden
                     message: Anonymous uploads cannot be deleted
-        '404':
+        "404":
           description: Không tìm thấy file với id
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notFound:
                   summary: File không tồn tại
@@ -731,14 +793,14 @@ paths:
       summary: Lấy thống kê download của file
       description: |
         Lấy statistics của file từ bảng `file_statistics`.
-        
+
         **Yêu cầu:** Chỉ owner hoặc admin mới xem được
-        
+
         **Dữ liệu trả về:**
         - `downloadCount`: Tổng số lượt download
         - `uniqueDownloaders`: Số người download khác nhau (authenticated users)
         - `lastDownloadedAt`: Lần download gần nhất
-        
+
         **Lưu ý:** Anonymous uploads không có statistics
       security:
         - BearerAuth: []
@@ -752,7 +814,7 @@ paths:
             format: uuid
             example: 550e8400-e29b-41d4-a716-446655440000
       responses:
-        '200':
+        "200":
           description: Statistics của file
           content:
             application/json:
@@ -807,26 +869,26 @@ paths:
                       uniqueDownloaders: 0
                       lastDownloadedAt: null
                       createdAt: "2025-11-18T08:00:00Z"
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
           description: Không phải owner hoặc admin
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notOwner:
                   summary: Không có quyền xem statistics
                   value:
                     error: Forbidden
                     message: You don't have permission to view statistics for this file
-        '404':
+        "404":
           description: File không tồn tại hoặc là anonymous upload
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notFound:
                   summary: File không tồn tại
@@ -841,18 +903,18 @@ paths:
       summary: Lấy lịch sử download chi tiết
       description: |
         Lấy download history từ bảng `download_history` (tương tự browser download history).
-        
+
         **Yêu cầu:** Chỉ owner hoặc admin mới xem được
-        
+
         **Thông tin mỗi download:**
         - Người download (username/email hoặc "Anonymous")
         - Thời điểm download
         - Trạng thái (completed/interrupted)
-        
+
         **Quyền riêng tư:**
         - Với anonymous download, hệ thống chỉ ghi nhận một bản ghi mang nhãn "Anonymous" cùng timestamp và trạng thái; **không log IP/User-Agent hoặc fingerprint**.
         - Thông tin cá nhân (username/email) chỉ xuất hiện khi người tải đăng nhập và đồng ý với điều khoản sử dụng.
-        
+
         **Pagination:** Hỗ trợ phân trang với `page` và `limit`
       security:
         - BearerAuth: []
@@ -881,7 +943,7 @@ paths:
             minimum: 1
             maximum: 100
       responses:
-        '200':
+        "200":
           description: Lịch sử download
           content:
             application/json:
@@ -956,26 +1018,26 @@ paths:
                       totalPages: 1
                       totalRecords: 3
                       limit: 50
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
           description: Không phải owner hoặc admin
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notOwner:
                   summary: Không có quyền xem history
                   value:
                     error: Forbidden
                     message: You don't have permission to view download history for this file
-        '404':
+        "404":
           description: File không tồn tại
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notFound:
                   summary: File không tồn tại
@@ -990,19 +1052,21 @@ paths:
       summary: Lấy thông tin file
       description: |
         Lấy metadata cơ bản của file qua share token (public endpoint, không cần authentication).
-        
-        **Response chỉ trả về thông tin cơ bản:**
-        - `id`, `fileName`, `shareToken`, `status`, `isPublic`, `hasPassword`
+
+        **Response trả về thông tin cơ bản:**
+        - `id`, `fileName`, `shareToken`, `status`, `isPublic`, `hasPassword`, `fileSize`, `mimeType`
+
+        **Lưu ý:** `sharedWith` (whitelist) không được trả về ở endpoint này - chỉ có trong `/files/info/{id}` dành cho owner.
       security: []
       parameters:
-        - $ref: '#/components/parameters/ShareToken'
+        - $ref: "#/components/parameters/ShareToken"
       responses:
-        '200':
+        "200":
           description: Thông tin file
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FileInfoResponse'
+                $ref: "#/components/schemas/FileInfoResponse"
               examples:
                 success:
                   summary: Trả về metadata cơ bản (public)
@@ -1014,6 +1078,8 @@ paths:
                       status: active
                       isPublic: false
                       hasPassword: true
+                      fileSize: 2048576
+                      mimeType: application/pdf
                 noPassword:
                   summary: File không có password
                   value:
@@ -1024,24 +1090,26 @@ paths:
                       status: active
                       isPublic: true
                       hasPassword: false
-        '404':
+                      fileSize: 1024000
+                      mimeType: application/pdf
+        "404":
           description: Không tìm thấy file với shareToken
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notFound:
                   summary: Token không tồn tại
                   value:
                     error: Not found
                     message: File not found
-        '410':
+        "410":
           description: File đã hết hạn
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 expired:
                   summary: File hết hạn
@@ -1056,18 +1124,18 @@ paths:
       summary: Tải file về
       description: |
         Download file. File có thể có nhiều lớp bảo mật cùng lúc (password + whitelist).
-        
+
         **Thứ tự kiểm tra bảo mật (theo best practice):**
         1. **File status** - Kiểm tra file còn hiệu lực (expired/pending) → 410/423
         2. **Whitelist** - Nếu file có `sharedWith` list → yêu cầu Bearer token, verify user email ∈ whitelist → 403 nếu không có quyền
         3. **Password** - Nếu file có password → yêu cầu header `X-File-Password` → 403 nếu sai/thiếu
-        
+
         **Lưu ý:** Tất cả các lớp bảo mật phải pass thì mới được download. Bất kỳ lớp nào fail sẽ trả error tương ứng.
-        
+
         **Owner preview trong giai đoạn pending:**
         - Nếu requester là owner (JWT hợp lệ, `sub` trùng `file.owner.id`), hệ thống cho phép bypass trạng thái `pending` để chủ file có thể kiểm thử trước khi tới giờ.
         - Tất cả user khác vẫn nhận 423 "File not yet available" cho tới khi `availableFrom` đến.
-        
+
         **Notification khi file chuyển trạng thái:**
         - Khuyến nghị cấu hình cronjob/background task gửi email/SMS/webhook khi file chuyển từ `pending` sang `active` để owner và whitelist nhận thông báo.
         - Endpoint này không tự gửi notification; cần bật tính năng ở backend hoặc job scheduler (xem mục Appendices/Future Enhancements).
@@ -1075,7 +1143,7 @@ paths:
         - BearerAuth: []
         - {}
       parameters:
-        - $ref: '#/components/parameters/ShareToken'
+        - $ref: "#/components/parameters/ShareToken"
         - name: X-File-Password
           in: header
           required: false
@@ -1083,7 +1151,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: File binary
           content:
             application/octet-stream:
@@ -1098,24 +1166,24 @@ paths:
             Content-Length:
               schema:
                 type: integer
-        '401':
+        "401":
           description: Thiếu Bearer token khi file có whitelist (sharedWith)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingAuth:
                   summary: Thiếu Bearer token (file private)
                   value:
                     error: Unauthorized
                     message: This file requires authentication. Please provide a Bearer token
-        '403':
+        "403":
           description: Sai password, thiếu password, hoặc không có quyền truy cập
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 wrongPassword:
                   summary: Sai password
@@ -1132,19 +1200,19 @@ paths:
                   value:
                     error: Access denied
                     message: You are not allowed to download this file. Your email is not in the shared list
-        '404':
+        "404":
           description: Không tìm thấy file
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notFound:
                   summary: Share token không tồn tại
                   value:
                     error: Not found
                     message: File not found
-        '410':
+        "410":
           description: File đã hết hạn
           content:
             application/json:
@@ -1162,7 +1230,154 @@ paths:
                   value:
                     error: File expired
                     expiredAt: "2025-11-19T16:20:18.619Z"
-        '423':
+        "423":
+          description: File chưa đến thời gian hiệu lực
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  availableFrom:
+                    type: string
+                    format: date-time
+                  hoursUntilAvailable:
+                    type: number
+              examples:
+                pending:
+                  summary: File chưa đến giờ
+                  value:
+                    error: File not yet available
+                    availableFrom: "2025-11-20T10:00:00Z"
+                    hoursUntilAvailable: 6
+
+  /files/{shareToken}/preview:
+    get:
+      tags:
+        - Files
+      summary: Xem trước file (inline preview)
+      description: |
+        Preview file trực tiếp trong browser (không download).
+
+        **Khác với `/files/{shareToken}/download`:**
+        - Download: `Content-Disposition: attachment` → browser tải file về
+        - Preview: `Content-Disposition: inline` → browser hiển thị file (PDF, images, videos)
+
+        **Bảo mật:** Áp dụng các lớp bảo mật giống như download endpoint:
+        1. File status check (expired/pending)
+        2. Whitelist check (nếu có `sharedWith`)
+        3. Password check (nếu có password)
+
+        **Use case:** Xem PDF, hình ảnh, video trực tiếp trong browser mà không cần tải về
+      security:
+        - BearerAuth: []
+        - {}
+      parameters:
+        - $ref: "#/components/parameters/ShareToken"
+        - name: X-File-Password
+          in: header
+          required: false
+          description: Mật khẩu bảo vệ (nếu file có password)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: File content (inline display)
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/*:
+              schema:
+                type: string
+                format: binary
+            video/*:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: inline; filename="document.pdf"
+            Content-Type:
+              schema:
+                type: string
+                example: application/pdf
+            Content-Length:
+              schema:
+                type: integer
+        "401":
+          description: Thiếu Bearer token khi file có whitelist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missingAuth:
+                  summary: Thiếu Bearer token (file private)
+                  value:
+                    error: Unauthorized
+                    message: This file requires authentication. Please provide a Bearer token
+        "403":
+          description: Sai password, thiếu password, hoặc không có quyền truy cập
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                wrongPassword:
+                  summary: Sai password
+                  value:
+                    error: Incorrect password
+                    message: The file password is incorrect
+                missingPassword:
+                  summary: Thiếu password
+                  value:
+                    error: Password required
+                    message: This file is password-protected. Please provide the password
+                notWhitelisted:
+                  summary: User không trong whitelist
+                  value:
+                    error: Access denied
+                    message: You are not allowed to access this file
+        "404":
+          description: Không tìm thấy file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                notFound:
+                  summary: Share token không tồn tại
+                  value:
+                    error: Not found
+                    message: File not found
+        "410":
+          description: File đã hết hạn
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  expiredAt:
+                    type: string
+                    format: date-time
+              examples:
+                expired:
+                  summary: File hết hạn
+                  value:
+                    error: File expired
+                    expiredAt: "2025-11-19T16:20:18.619Z"
+        "423":
           description: File chưa đến thời gian hiệu lực
           content:
             application/json:
@@ -1191,8 +1406,10 @@ paths:
       summary: Xóa file hết hạn
       description: |
         Xóa file hết hạn (Cron job hoặc Admin endpoint).
-        Yêu cầu X-Cron-Secret header hoặc admin token.
-        
+        **Xác thực:**
+        - Cần **Authorization: Bearer <ADMIN_API_TOKEN>** (giá trị lấy từ biến môi trường `ADMIN_API_TOKEN`)
+        - Hoặc **X-Cron-Secret: <CLEANUP_SECRET>** cho cron nội bộ
+
         **Security best practices:**
         - `X-Cron-Secret` phải được lưu trong môi trường bảo mật, hỗ trợ rotation định kỳ (ví dụ đổi secret hàng tuần/tháng).
         - Nên triển khai rate limiting/IP allowlist để tránh bị spam cleanup (DOS).
@@ -1202,7 +1419,7 @@ paths:
         - BearerAuth: []
         - CronSecret: []
       responses:
-        '200':
+        "200":
           description: Cleanup hoàn tất
           content:
             application/json:
@@ -1223,29 +1440,34 @@ paths:
                     message: Expired files removed
                     deletedFiles: 12
                     timestamp: "2025-11-19T10:00:00Z"
-        '401':
-          description: Thiếu hoặc sai Bearer token / X-Cron-Secret
+        "401":
+          description: Thiếu hoặc sai ADMIN_API_TOKEN / X-Cron-Secret
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingSecret:
                   summary: Thiếu X-Cron-Secret
                   value:
                     error: Unauthorized
                     message: X-Cron-Secret header is required
+                invalidAdminToken:
+                  summary: Thiếu hoặc sai ADMIN_API_TOKEN
+                  value:
+                    error: Unauthorized
+                    message: "Admin token is required (Authorization: Bearer <ADMIN_API_TOKEN>)"
                 invalidToken:
                   summary: Token không hợp lệ
                   value:
                     error: Unauthorized
                     message: Invalid or expired admin token
-        '403':
-          description: Không phải admin hoặc secret sai
+        "403":
+          description: Secret sai hoặc token sai
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notAdmin:
                   summary: User không phải admin
@@ -1257,12 +1479,12 @@ paths:
                   value:
                     error: Forbidden
                     message: Invalid cron secret
-        '429':
+        "429":
           description: Vượt quá giới hạn gọi cleanup
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 rateLimited:
                   summary: Cleanup bị giới hạn tần suất
@@ -1275,14 +1497,17 @@ paths:
       tags:
         - Admin
       summary: Lấy cấu hình hệ thống
-      description: Lấy system policy (chỉ admin)
+      description: |
+        Lấy system policy (admin).
+
+        **Xác thực:** gửi header `Authorization: Bearer <ADMIN_API_TOKEN>` (ADMIN_API_TOKEN lấy từ biến môi trường backend; không dùng access token user).
       responses:
-        '200':
+        "200":
           description: System policy
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SystemPolicy'
+                $ref: "#/components/schemas/SystemPolicy"
               examples:
                 success:
                   summary: Thông tin policy
@@ -1293,44 +1518,53 @@ paths:
                     maxValidityDays: 30
                     defaultValidityDays: 7
                     requirePasswordMinLength: 8
-        '401':
-          description: Thiếu hoặc sai Bearer token
+        "401":
+          description: Thiếu hoặc sai ADMIN_API_TOKEN
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   summary: Thiếu Authorization header
                   value:
                     error: Unauthorized
-                    message: Bearer token is required
-        '403':
-          description: Không phải admin
+                    message: "Admin token is required (Authorization: Bearer <ADMIN_API_TOKEN>)"
+                invalidToken:
+                  summary: Token không hợp lệ
+                  value:
+                    error: Unauthorized
+                    message: Invalid or expired admin token
+        "403":
+          description: Token sai
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notAdmin:
-                  summary: User không có quyền admin
+                  summary: Admin token không hợp lệ
                   value:
                     error: Forbidden
                     message: You don't have permission to access this resource
 
+  /policy/limits:
     patch:
       tags:
         - Admin
       summary: Cập nhật cấu hình hệ thống
-      description: Cập nhật system policy (chỉ admin)
+      description: |
+        Cập nhật system policy (admin).
+
+        **Xác thực:** gửi header `Authorization: Bearer <ADMIN_API_TOKEN>` (ADMIN_API_TOKEN lấy từ biến môi trường backend; không dùng access token user).
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SystemPolicyUpdate'
+              $ref: "#/components/schemas/SystemPolicyUpdate"
       responses:
-        '200':
+        "200":
           description: Cập nhật thành công
           content:
             application/json:
@@ -1340,7 +1574,7 @@ paths:
                   message:
                     type: string
                   policy:
-                    $ref: '#/components/schemas/SystemPolicy'
+                    $ref: "#/components/schemas/SystemPolicy"
               examples:
                 success:
                   summary: Policy được cập nhật
@@ -1353,39 +1587,44 @@ paths:
                       maxValidityDays: 14
                       defaultValidityDays: 5
                       requirePasswordMinLength: 8
-        '400':
+        "400":
           description: Payload không hợp lệ (giá trị < minimum)
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 invalidRange:
                   summary: maxValidityDays < minValidityHours
                   value:
                     error: Validation error
                     message: maxValidityDays must be greater than or equal to minValidityHours
-        '401':
-          description: Thiếu hoặc sai Bearer token
+        "401":
+          description: Thiếu hoặc sai ADMIN_API_TOKEN
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 missingToken:
                   summary: Thiếu Authorization header
                   value:
                     error: Unauthorized
-                    message: Bearer token is required
-        '403':
-          description: Không phải admin
+                    message: "Admin token is required (Authorization: Bearer <ADMIN_API_TOKEN>)"
+                invalidToken:
+                  summary: Token không hợp lệ
+                  value:
+                    error: Unauthorized
+                    message: Invalid or expired admin token
+        "403":
+          description: Token sai
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
               examples:
                 notAdmin:
-                  summary: User không có quyền admin
+                  summary: Admin token không hợp lệ
                   value:
                     error: Forbidden
                     message: You don't have permission to access this resource
@@ -1396,7 +1635,9 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token từ /auth/login
+      description: |
+        JWT token từ /auth/login (cho user endpoints).
+        Với admin endpoints, gửi `Authorization: Bearer <ADMIN_API_TOKEN>` (lấy từ biến môi trường backend, không phải access token user).
 
     CronSecret:
       type: apiKey
@@ -1475,7 +1716,7 @@ components:
           type: string
           example: eyJhbGciOi...
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     TOTPRequiredResponse:
       type: object
@@ -1494,12 +1735,12 @@ components:
     TOTPVerifyRequest:
       type: object
       required:
-        - userId
+        - cid
         - code
       properties:
         cid:
           type: string
-          description: Challenge ID nhận từ bước /auth/login
+          description: ID của login session (cid) nhận từ bước /auth/login khi requireTOTP=true
           example: 8d4f3bb1-2f52-4a76-b951-7c21ef991abc
         code:
           type: string
@@ -1544,7 +1785,7 @@ components:
           format: date-time
           description: |
             Thời điểm bắt đầu hiệu lực (không được lớn hơn `availableTo` và không vượt quá khoảng thời gian cho phép trong `system_policy.maxValidityDays`).
-            
+
             **Mặc định:** Nếu cả `availableFrom` và `availableTo` đều null, hệ thống tự động set:
             - `availableFrom` = thời điểm hiện tại
             - `availableTo` = thời điểm hiện tại + 7 ngày (default_validity_days)
@@ -1554,7 +1795,7 @@ components:
           format: date-time
           description: |
             Thời điểm kết thúc hiệu lực (không nằm trong quá khứ, phải lớn hơn `availableFrom` và nhỏ hơn giới hạn `maxValidityDays`).
-            
+
             **Mặc định:** Nếu cả `availableFrom` và `availableTo` đều null, hệ thống tự động set:
             - `availableFrom` = thời điểm hiện tại
             - `availableTo` = thời điểm hiện tại + 7 ngày (default_validity_days)
@@ -1574,7 +1815,7 @@ components:
           type: boolean
           example: true
         file:
-          $ref: '#/components/schemas/File'
+          $ref: "#/components/schemas/File"
         message:
           type: string
           example: File uploaded successfully
@@ -1639,7 +1880,7 @@ components:
             format: email
           example: ["user1@example.com", "user2@example.com"]
         owner:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
         createdAt:
           type: string
           format: date-time
@@ -1649,14 +1890,14 @@ components:
       type: object
       properties:
         file:
-          $ref: '#/components/schemas/File'
+          $ref: "#/components/schemas/File"
 
     UserProfileResponse:
       type: object
       description: Response cho GET /user - thông tin profile
       properties:
         user:
-          $ref: '#/components/schemas/User'
+          $ref: "#/components/schemas/User"
 
     UserFilesResponse:
       type: object
@@ -1665,7 +1906,7 @@ components:
         files:
           type: array
           items:
-            $ref: '#/components/schemas/File'
+            $ref: "#/components/schemas/File"
           description: Danh sách file của user (có thể filter theo status)
         pagination:
           type: object
@@ -1710,6 +1951,7 @@ components:
           example: 1
         maxFileSizeMB:
           type: integer
+          description: Max file size in MB (currently 50MB for all environments)
           example: 50
         minValidityHours:
           type: integer
@@ -1789,7 +2031,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           example:
             error: Validation error
             message: Invalid input data
@@ -1799,7 +2041,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           example:
             error: Unauthorized
             message: Invalid or missing authentication token
@@ -1809,7 +2051,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           example:
             error: Forbidden
             message: You don't have permission to access this resource
@@ -1819,7 +2061,7 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/Error'
+            $ref: "#/components/schemas/Error"
           example:
             error: Not found
             message: The requested resource was not found
