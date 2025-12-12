@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, FormEvent, KeyboardEvent, useMemo, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
 	CalendarCheck2,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ApiError, uploadFile } from "@/lib/api/file";
+import { _isLoggedIn } from "@/lib/api/helper";
 import type { FileUploadResponse } from "@/lib/components/schemas";
 
 
@@ -53,8 +54,14 @@ export default function UploadPage() {
 	const [sharedWithInput, setSharedWithInput] = useState("");
 	const [sharedWith, setSharedWith] = useState<string[]>([]);
 	const [enableTOTP, setEnableTOTP] = useState(false);
+	const [isPublicFile, setIsPublicFile] = useState(true);
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [uploadResult, setUploadResult] = useState<FileUploadResponse | null>(null);
+
+	useEffect(() => {
+		setIsLoggedIn(_isLoggedIn());
+	}, []);
 
 	const shareLink = useMemo(() => {
 		if (uploadResult?.file?.shareToken && typeof window !== "undefined") {
@@ -78,6 +85,7 @@ export default function UploadPage() {
 		setSharedWithInput("");
 		setSharedWith([]);
 		setEnableTOTP(false);
+		setIsPublicFile(true);
 		if (fileInputRef.current) {
 			fileInputRef.current.value = "";
 		}
@@ -191,9 +199,9 @@ export default function UploadPage() {
 
 		formData.append("enableTOTP", String(enableTOTP));
 
-		// Nếu bật mật khẩu hoặc chia sẻ riêng, coi như file không công khai.
-		const isPublic = !passwordEnabled && sharedWith.length === 0;
-		formData.append("isPublic", String(isPublic));
+		// Nếu bật mật khẩu hoặc chia sẻ riêng, luôn chuyển về riêng tư dù người dùng chọn công khai.
+		const effectiveIsPublic = isPublicFile && !passwordEnabled && sharedWith.length === 0;
+		formData.append("isPublic", String(effectiveIsPublic));
 
 		setIsSubmitting(true);
 
@@ -337,6 +345,38 @@ export default function UploadPage() {
 					<section>
 						<h2 className="text-xl font-medium text-gray-900 mb-4">2. Cấu hình nâng cao</h2>
 						<div className="space-y-6">
+							{isLoggedIn && (
+								<label className="flex items-start justify-between gap-6">
+									<div className="flex-1">
+										<p className="flex items-center gap-3 text-sm font-medium text-gray-900">
+											<ShieldCheck className="w-4 h-4" />
+											Chế độ chia sẻ
+										</p>
+										<p className="mt-1 text-sm text-gray-500">
+											Chọn công khai để ai có link đều tải được. Chọn riêng tư để chỉ bạn hoặc danh sách chia sẻ truy cập.
+										</p>
+										<p className="mt-1 text-xs text-gray-400">
+											Nếu bật mật khẩu hoặc danh sách email, file sẽ tự chuyển về riêng tư khi gửi.
+										</p>
+									</div>
+									<div className="flex items-center gap-3">
+										<span className="text-xs font-medium text-gray-600">
+											{isPublicFile ? "Công khai" : "Riêng tư"}
+										</span>
+										<button
+											type="button"
+											onClick={() => setIsPublicFile((prev) => !prev)}
+											className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublicFile ? "bg-blue-600" : "bg-gray-300"}`}
+											aria-pressed={isPublicFile}
+										>
+											<span
+												className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${isPublicFile ? "translate-x-5" : "translate-x-1"}`}
+											/>
+										</button>
+									</div>
+								</label>
+							)}
+
 							<div className="flex items-start justify-between gap-6">
 								<div className="flex-1">
 									<label className="flex items-center gap-3 text-sm font-medium text-gray-900">
