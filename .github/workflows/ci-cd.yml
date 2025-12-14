@@ -29,11 +29,6 @@ jobs:
             image_suffix: -frontend
             build-args: |
               NEXT_PUBLIC_API_URL=/api
-          - service: backend
-            context: ./mockbe
-            dockerfile: backend.Dockerfile
-            image_suffix: -backend
-            build-args: ""
           - service: nginx
             context: .
             dockerfile: nginx.Dockerfile

@@ -1,0 +1,33 @@
+services:
+  frontend:
+    image: ghcr.io/dath-251-thuanle/file-sharing-fe-web-frontend:main
+    restart: always
+    environment:
+      - NODE_ENV=production
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./mockbe
+      dockerfile: backend.Dockerfile
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  nginx:
+    image: ghcr.io/dath-251-thuanle/file-sharing-fe-web-nginx:main
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: file-sharing-network
+    driver: bridge
