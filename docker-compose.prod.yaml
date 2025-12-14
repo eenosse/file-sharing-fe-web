@@ -16,14 +16,14 @@ services:
     networks:
       - app-network
 
-  nginx:
-    image: ghcr.io/dath-251-thuanle/file-sharing-fe-web-nginx:main
-    restart: always
+nginx:
+    build:
+      context: .
+      dockerfile: nginx.Dockerfile
     ports:
       - "80:80"
     depends_on:
       - frontend
-      - backend
     networks:
       - app-network
 
