@@ -33,7 +33,20 @@ const attachTokenInterceptor = (config: InternalAxiosRequestConfig) => {
   return config;
 };
 
-// 2. Global Error Handler (Used by all clients)
+const unauthErrorResponseInterceptor = (error: AxiosError<ErrorResponse>) => {
+  if (error.response) {
+    const { status, data } = error.response;
+
+    if (status >= 500) {
+      toast.error("System error. Please try again later.");
+    }
+  } else {
+    toast.error("Network error. Please check your connection.");
+  }
+  return Promise.reject(error);
+};
+
+// 2. Global Error Handler (Used by all authed clients)
 const errorResponseInterceptor = (error: AxiosError<ErrorResponse>) => {
   if (error.response) {
     const { status, data } = error.response;
@@ -46,7 +59,7 @@ const errorResponseInterceptor = (error: AxiosError<ErrorResponse>) => {
     } else if (status === 403) {
       toast.error(data?.message || "Access denied.");
     } else if (status === 413) {
-      toast.error("File is too large."); // Specific to upload [cite: 173]
+      toast.error("File is too large.");
     } else if (status >= 500) {
       toast.error("System error. Please try again later.");
     }
@@ -76,7 +89,7 @@ const authClient: ApiClient = axios.create({
   },
 });
 // Only attach response interceptor (no token needed on request)
-authClient.interceptors.response.use(responseDataInterceptor, errorResponseInterceptor);
+authClient.interceptors.response.use(responseDataInterceptor, unauthErrorResponseInterceptor);
 
 /**
  * 2. Admin Client
